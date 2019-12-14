@@ -1,0 +1,229 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "meta.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/inverse/meta": {
+      "delete": {
+        "operationId": "DeleteMetaInverse",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/MetaKey"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "val",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Meta"
+        ]
+      },
+      "post": {
+        "operationId": "GetMetaInverse",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/MetaKey"
+            }
+          }
+        },
+        "tags": [
+          "Meta"
+        ]
+      }
+    },
+    "/inverse/metas": {
+      "delete": {
+        "operationId": "DeleteMetasInverse",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/MetaKeys"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "vals",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Meta"
+        ]
+      },
+      "post": {
+        "operationId": "GetMetasInverse",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/MetaKeys"
+            }
+          }
+        },
+        "tags": [
+          "Meta"
+        ]
+      }
+    },
+    "/meta": {
+      "delete": {
+        "operationId": "DeleteMeta",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/MetaVal"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Meta"
+        ]
+      },
+      "post": {
+        "operationId": "SetMeta",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/payloadEmpty"
+            }
+          }
+        },
+        "tags": [
+          "Meta"
+        ]
+      }
+    },
+    "/metas": {
+      "delete": {
+        "operationId": "DeleteMetas",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/MetaVals"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "keys",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Meta"
+        ]
+      },
+      "post": {
+        "operationId": "SetMetas",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/payloadEmpty"
+            }
+          }
+        },
+        "tags": [
+          "Meta"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "MetaKey": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      }
+    },
+    "MetaKeyVal": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "val": {
+          "type": "string"
+        }
+      }
+    },
+    "MetaKeys": {
+      "type": "object",
+      "properties": {
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "MetaVal": {
+      "type": "object",
+      "properties": {
+        "val": {
+          "type": "string"
+        }
+      }
+    },
+    "MetaVals": {
+      "type": "object",
+      "properties": {
+        "vals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "payloadEmpty": {
+      "type": "object"
+    }
+  }
+}
