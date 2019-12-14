@@ -18,15 +18,13 @@ syntax = "proto3";
 
 package be;
 
-option go_package = "github.com/teamnameis/be/apis/grpc/agent";
+option go_package = "github.com/teamnameis/be/apis/grpc/be";
 option java_multiple_files = true;
 option java_package = "org.teamnameis.be";
 option java_outer_classname = "Overlay";
 
-import "payload.proto";
-import "google/api/annotations.proto";
-import "pb/gql.proto";
-
 service Overlay {
-  rpc Send(stream payload.Flame) returns (stream payload.Flame) {}
+  rpc Send(stream Flame) returns (stream Flame) {}
 }
+
+message Flame { bytes data = 1; }

@@ -20,8 +20,8 @@ package errors;
 
 option go_package = "github.com/teamnameis/be/apis/grpc/errors";
 option java_multiple_files = true;
-option java_package = "org.vdaas.vald.errors";
-option java_outer_classname = "ValdErrors";
+option java_package = "org.teamnameis.be";
+option java_outer_classname = "Errors";
 
 import "validate/validate.proto";
 /*
