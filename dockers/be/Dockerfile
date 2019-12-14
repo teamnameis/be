@@ -14,12 +14,12 @@
 # limitations under the License.
 #
 
-FROM teamnameis/be-base:latest AS builder
+FROM vdaas/vald-base:latest AS builder
 
-ENV ORG vdaas
-ENV REPO vald
+ENV ORG teamnameis
+ENV REPO be
 ENV PKG be
-ENV APP_NAME ngt
+ENV APP_NAME be
 
 WORKDIR ${GOPATH}/src/github.com/${ORG}/${REPO}/internal
 COPY internal .
@@ -32,15 +32,6 @@ COPY pkg/${PKG} .
 
 WORKDIR ${GOPATH}/src/github.com/${ORG}/${REPO}/cmd/${PKG}
 COPY cmd/${PKG} .
-
-WORKDIR /tmp
-COPY versions/NGT_VERSION .
-RUN export NGT_VERSION=`cat NGT_VERSION` \
-    && curl -LO "https://github.com/yahoojapan/NGT/archive/v${NGT_VERSION}.tar.gz" \
-    && tar zxf v${NGT_VERSION}.tar.gz -C /tmp \
-    && cd /tmp/NGT-${NGT_VERSION}; cmake . \
-    && make -j -C /tmp/NGT-${NGT_VERSION} \
-    && make install -C /tmp/NGT-${NGT_VERSION}
 
 WORKDIR ${GOPATH}/src/github.com/${ORG}/${REPO}
 RUN CGO_ENABLED=1 \
@@ -69,7 +60,7 @@ FROM scratch
 # FROM alpine:latest
 LABEL maintainer "kpango <i.can.feel.gravity@gmail.com>"
 
-ENV APP_NAME ngt
+ENV APP_NAME be
 
 # Copy certificates for SSL/TLS
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
@@ -79,4 +70,4 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /usr/bin/${APP_NAME} /go/bin/${APP_NAME}
 COPY --from=builder /tmp/config.yaml /etc/server/config.yaml
 
-ENTRYPOINT ["/go/bin/ngt"]
+ENTRYPOINT ["/go/bin/be"]

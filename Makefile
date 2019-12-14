@@ -109,7 +109,7 @@ clean:
 		./$(GOCACHE) \
 		./go.sum \
 		./go.mod
-	cp ./hack/go.mod.default ./go.mod
+	go mod init
 
 .PHONY: license
 ## add license to files

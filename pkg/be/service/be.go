@@ -14,12 +14,28 @@
 // limitations under the License.
 //
 
-// Package config providers configuration type and load configuration logic
-package config
+// Package service manages the main logic of server.
+package service
 
-type IndexManager struct {
+import (
+)
+
+type BE interface {
+	Overlay([]byte) ([]byte, error)
 }
 
-func (im *IndexManager) Bind() *IndexManager {
-	return im
+type be struct {
+	mlURL string
 }
+
+func New(cfg *config.BE) (bb BE, err error) {
+	b := new(be)
+	b.mlURL = cfg.MLURL
+	return b, nil
+}
+
+
+func (b *be) Overlay(data []byte) (res []byte, err error){
+	return nil, nil
+}
+
