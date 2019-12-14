@@ -11,4 +11,7 @@ service Overlay {
   rpc Send(stream Flame) returns (stream Flame) {}
 }
 
-message Flame { bytes data = 1; }
+message Flame {
+  int32 id = 1;
+  bytes data = 2;
+}

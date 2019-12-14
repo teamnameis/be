@@ -1,42 +1,57 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package main
 
 import (
-	io "io"
+	"bytes"
+	"encoding/json"
+	"image"
+	"image/draw"
+	"image/png"
+	"io"
 	"log"
+	"mime/multipart"
 	"net"
+	"net/http"
+	"time"
 
 	"google.golang.org/grpc"
 )
 
 const (
-	port = ":1234"
+	port = "0.0.0.0:1234"
+	ml   = "https://127.0.0.1:5000/"
 )
+
+type MorphResponse struct {
+	Data []byte `json:"data"`
+}
+
+type MorphRequest struct {
+	UBones  *Bones `json:"user_bones"`
+	CBones  *Bones `json:"clothes_bones"`
+	Clothes []byte `json:"clothes"`
+}
+
+type Edge struct {
+	Score float64 `json:"score"`
+	X     float64 `json:"x"`
+	Y     float64 `json:"y"`
+}
+
+type Bone []Edge
+
+type Bones []Bone
 
 // server is used to implement helloworld.GreeterServer.
 type server struct{}
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) Send(stream Overlay_SendServer) error {
+	first := true
+	tick := time.NewTicker(time.Millisecond * 200)
 	for {
 		select {
+		case <-stream.Context().Done():
+			return stream.Context().Err()
 		default:
 			flame, err := stream.Recv()
 			if err != nil {
@@ -45,7 +60,19 @@ func (s *server) Send(stream Overlay_SendServer) error {
 				}
 				return err
 			}
+
 			if flame != nil {
+				select {
+				case <-tick.C:
+				default:
+					if first {
+						first = false
+						bones, err = bone(flame.Data)
+						if err != nil {
+							return err
+						}
+					}
+				}
 				err = stream.Send(flame)
 				if err != nil {
 					return err
@@ -54,6 +81,83 @@ func (s *server) Send(stream Overlay_SendServer) error {
 		}
 	}
 	return nil
+}
+
+func overlay(img1, img2 []byte) ([]byte, error) {
+	first, err := png.Decode(bytes.NewBuffer(img1))
+	if err != nil {
+		log.Fatalf("failed to decode: %s", err)
+	}
+
+	second, err := png.Decode(bytes.NewBuffer(img2))
+	if err != nil {
+		log.Fatalf("failed to decode: %s", err)
+	}
+
+	offset := image.Pt(0, 0)
+	b := first.Bounds()
+	image3 := image.NewRGBA(b)
+	draw.Draw(image3, b, first, image.ZP, draw.Src)
+	draw.Draw(image3, second.Bounds().Add(offset), second, image.ZP, draw.Over)
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, image3)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func morph(id int, bones *Bones) ([]byte, error) {
+	var body *bytes.Buffer
+	err := json.NewEncoder(body).Encode(MorphRequest{
+		ID:    id,
+		Bones: bones,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res, err := http.Post(ml, "application/json", body)
+	if err != nil {
+		return nil, err
+	}
+	var data MorphResponse
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return nil, err
+	}
+	return data.Data, nil
+}
+
+func bone(b []byte) (bones *Bones, err error) {
+	body := &bytes.Buffer{}
+	mw := multipart.NewWriter(body)
+	w, err := mw.CreateFormField("image")
+	if err != nil {
+		return nil, err
+	}
+	_, err = w.Write(b)
+	if err != nil {
+		return nil, err
+	}
+	ct := mw.FormDataContentType()
+	err = mw.Close()
+	if err != nil {
+		return nil, err
+	}
+	res, err := http.Post(ml, ct, body)
+	if err != nil {
+		return nil, err
+	}
+	bones = new(Bones)
+	err = json.NewDecoder(res.Body).Decode(&bones)
+	if err != nil {
+		return nil, err
+	}
+	err = res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	return bones, nil
 }
 
 func main() {
