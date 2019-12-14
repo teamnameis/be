@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package be;
+
+option go_package = "be";
+option java_multiple_files = true;
+option java_package = "org.teamnameis.be";
+option java_outer_classname = "Overlay";
+
+service Overlay {
+  rpc Send(stream Flame) returns (stream Flame) {}
+}
+
+message Flame { bytes data = 1; }
