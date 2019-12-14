@@ -1,0 +1,16 @@
+version: '2'
+services:
+  be:
+    image: teamnameis/be:latest
+    restart: always
+    depends_on:
+     - ml
+    ports:
+     - "1234:1234"
+     - "5678:5678"
+  ml:
+    image: teamnameis/bone:latest
+    restart: always
+    ports:
+     - "5000:5000"
+
