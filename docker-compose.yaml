@@ -13,10 +13,12 @@ services:
     environment:
       DURATION: 3s
       ROTATE: ROTATE
+      CONV: CONV
       ML_PORT: "ml:5000"
   ml:
     image: teamnameis/bone:latest
     restart: always
+    command: python server.py --model=mobilenet_v2_small
     ports:
      - "5000:5000"
     networks:
