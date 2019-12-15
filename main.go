@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +24,8 @@ import (
 	"github.com/kpango/glg"
 	"github.com/teamnameis/be/bone"
 	"google.golang.org/grpc"
+
+	_ "net/http/pprof"
 )
 
 const (
@@ -33,9 +36,9 @@ const (
 var (
 	clothesMap sync.Map
 
-	mode     = os.Getenv("ROTATE")
-	ml       = os.Getenv("ML_PORT")
-	sec = func() time.Duration {
+	mode = os.Getenv("ROTATE")
+	ml   = os.Getenv("ML_PORT")
+	sec  = func() time.Duration {
 		t := os.Getenv("DURATION")
 		if t == "" {
 			return time.Millisecond * 500
@@ -192,6 +195,11 @@ func morph(id int32, user image.Image) ([]byte, error) {
 }
 
 func main() {
+	runtime.SetBlockProfileRate(1)
+
+	go func() {
+		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+	}()
 
 	var (
 		clothes []byte
