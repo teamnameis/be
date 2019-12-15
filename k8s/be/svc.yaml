@@ -9,11 +9,11 @@ spec:
       protocol: "TCP"
       port: 8080
       targetPort: 1234
-      nodePort: 12345
+      nodePort: 30000
     - name: be-grpc
       protocol: "TCP"
-      port: 50000
+      port: 8081
       targetPort: 5678
-      nodePort: 54321
+      nodePort: 30001
   selector:
     app: be
