@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/kpango/glg"
 	"github.com/teamnameis/be/bone"
 	"google.golang.org/grpc"
@@ -72,10 +73,11 @@ func (s *server) Send(stream Overlay_SendServer) error {
 
 			if frame != nil {
 				glg.Info(frame.GetId())
+				user, _ := rotate(frame.GetData())
 				err = func() error {
 					select {
 					case <-tick.C:
-						clothes, err = morph(frame.GetId(), frame.GetData())
+						clothes, err = morph(frame.GetId(), user)
 						if err != nil {
 							glg.Errorf("morph error \tid:%d\t%v", frame.GetId(), err)
 							return stream.Send(frame)
@@ -83,14 +85,14 @@ func (s *server) Send(stream Overlay_SendServer) error {
 					default:
 						if first {
 							first = false
-							clothes, err = morph(frame.GetId(), frame.GetData())
+							clothes, err = morph(frame.GetId(), user)
 							if err != nil {
 								glg.Errorf("morph error \tid:%d\t%v", frame.GetId(), err)
 								return stream.Send(frame)
 							}
 						}
 					}
-					res, err := overlay(frame.Data, clothes)
+					res, err := overlay(user, clothes)
 					if err != nil {
 						glg.Errorf("overlay error \tid:%d\t%v", frame.GetId(), err)
 						return stream.Send(frame)
@@ -108,12 +110,20 @@ func (s *server) Send(stream Overlay_SendServer) error {
 	return nil
 }
 
-func overlay(person, clothes []byte) ([]byte, error) {
-	first, err := jpeg.Decode(bytes.NewBuffer(person))
+func rotate(img []byte)(image.Image, error){
+	i, err := jpeg.Decode(bytes.NewBuffer(img))
 	if err != nil {
 		return nil, err
 	}
+	return imaging.Rotate90(i), nil
+}
 
+func overlay(first image.Image, clothes []byte) ([]byte, error) {
+	// first, err := jpeg.Decode(bytes.NewBuffer(person))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
 	second, err := png.Decode(bytes.NewBuffer(clothes))
 	if err != nil {
 		return nil, err
@@ -132,15 +142,21 @@ func overlay(person, clothes []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func morph(id int32, user []byte) ([]byte, error) {
+func morph(id int32, user image.Image) ([]byte, error) {
 	conn, err := grpc.Dial(ml, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, user, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	data, err := bone.NewMLClient(conn).Morph(context.Background(), &bone.Frame{
 		Id:   id,
-		Data: user,
+		Data: buf.Bytes(),
 	})
 	if err != nil {
 		return nil, err
@@ -173,9 +189,10 @@ func main() {
 				json.NewEncoder(w).Encode(data)
 				return
 			}
+			user, _ := rotate(img)
 			select {
 			case <-httick.C:
-				clothes, err = morph(data.ID, img)
+				clothes, err = morph(data.ID, user)
 				if err != nil {
 					json.NewEncoder(w).Encode(data)
 					return
@@ -183,14 +200,14 @@ func main() {
 			default:
 				if first {
 					first = false
-					clothes, err = morph(data.ID, img)
+					clothes, err = morph(data.ID, user)
 					if err != nil {
 						json.NewEncoder(w).Encode(data)
 						return
 					}
 				}
 			}
-			res, err := overlay(img, clothes)
+			res, err := overlay(user, clothes)
 			if err != nil {
 				json.NewEncoder(w).Encode(data)
 				return
