@@ -28,8 +28,8 @@ import (
 var (
 	clothesMap sync.Map
 
-	mode = os.Getenv("ROTATE")
-	ml      = os.Getenv("ML_PORT")
+	mode   = os.Getenv("ROTATE")
+	ml     = os.Getenv("ML_PORT")
 	httick = time.NewTicker(time.Millisecond * 200)
 )
 
@@ -82,6 +82,7 @@ func (s *server) Send(stream Overlay_SendServer) error {
 						clothes, err = morph(frame.GetId(), user)
 						if err != nil {
 							glg.Errorf("morph error \tid:%d\t%v", frame.GetId(), err)
+							frame.Data = imageToByte(user)
 							return stream.Send(frame)
 						}
 					default:
@@ -90,6 +91,7 @@ func (s *server) Send(stream Overlay_SendServer) error {
 							clothes, err = morph(frame.GetId(), user)
 							if err != nil {
 								glg.Errorf("morph error \tid:%d\t%v", frame.GetId(), err)
+								frame.Data = imageToByte(user)
 								return stream.Send(frame)
 							}
 						}
@@ -97,6 +99,7 @@ func (s *server) Send(stream Overlay_SendServer) error {
 					res, err := overlay(user, clothes)
 					if err != nil {
 						glg.Errorf("overlay error \tid:%d\t%v", frame.GetId(), err)
+						frame.Data = imageToByte(user)
 						return stream.Send(frame)
 					}
 					frame.Data = res
@@ -112,7 +115,7 @@ func (s *server) Send(stream Overlay_SendServer) error {
 	return nil
 }
 
-func rotate(img []byte)(image.Image, error){
+func rotate(img []byte) (image.Image, error) {
 	i, err := jpeg.Decode(bytes.NewBuffer(img))
 	if err != nil {
 		return nil, err
@@ -122,6 +125,12 @@ func rotate(img []byte)(image.Image, error){
 		return imaging.Rotate90(i), nil
 	}
 	return i, nil
+}
+
+func imageToByte(img image.Image) []byte {
+	buf := new(bytes.Buffer)
+	jpeg.Encode(buf, img, nil)
+	return buf.Bytes()
 }
 
 func overlay(first image.Image, clothes []byte) ([]byte, error) {
@@ -200,6 +209,8 @@ func main() {
 			case <-httick.C:
 				clothes, err = morph(data.ID, user)
 				if err != nil {
+					glg.Errorf("morph error \tid:%d\t%v", data.ID, err)
+					data.Data = base64.StdEncoding.EncodeToString(imageToByte(user))
 					json.NewEncoder(w).Encode(data)
 					return
 				}
@@ -208,6 +219,8 @@ func main() {
 					first = false
 					clothes, err = morph(data.ID, user)
 					if err != nil {
+						glg.Errorf("morph error \tid:%d\t%v", data.ID, err)
+						data.Data = base64.StdEncoding.EncodeToString(imageToByte(user))
 						json.NewEncoder(w).Encode(data)
 						return
 					}
@@ -215,6 +228,8 @@ func main() {
 			}
 			res, err := overlay(user, clothes)
 			if err != nil {
+				data.Data = base64.StdEncoding.EncodeToString(imageToByte(user))
+				glg.Errorf("overlay error \tid:%d\t%v", data.ID, err)
 				json.NewEncoder(w).Encode(data)
 				return
 			}
