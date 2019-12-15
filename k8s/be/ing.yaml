@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+# apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/grpc-backend: "true"
+  labels:
+    name: be-ingress
+    app: be-ingress
+  name: be-ingress
+  namespace: default
+spec:
+  rules:
+  - host: 47.74.3.96
+    http:
+      paths:
+      - backend:
+          serviceName: be
+          servicePort: grpc

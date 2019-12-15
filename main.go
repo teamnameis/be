@@ -70,6 +70,7 @@ func (s *server) Send(stream Overlay_SendServer) error {
 			}
 
 			if frame != nil {
+				glg.Info(frame.GetId())
 				err = func() error {
 					select {
 					case <-tick.C:
