@@ -179,11 +179,12 @@ func morph(id int32, user image.Image) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	now := time.Now()
 	data, err := bone.NewMLClient(conn).Morph(context.Background(), &bone.Frame{
 		Id:   id,
 		Data: buf.Bytes(),
 	})
+	glg.Warnf("morph spend %v", time.Now().Sub(now))
 	if err != nil {
 		return nil, err
 	}
