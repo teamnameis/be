@@ -36,9 +36,10 @@ const (
 var (
 	clothesMap sync.Map
 
-	mode = os.Getenv("ROTATE")
-	ml   = os.Getenv("ML_PORT")
-	sec  = func() time.Duration {
+	disableConv = strings.ToLower(os.Getenv("CONV")) != "conv"
+	mode        = os.Getenv("ROTATE")
+	ml          = os.Getenv("ML_PORT")
+	sec         = func() time.Duration {
 		t := os.Getenv("DURATION")
 		if t == "" {
 			return time.Millisecond * 500
@@ -182,11 +183,12 @@ func morph(id int32, user image.Image) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	now := time.Now()
 	data, err := bone.NewMLClient(conn).Morph(context.Background(), &bone.Frame{
 		Id:   id,
 		Data: buf.Bytes(),
 	})
+	glg.Warnf("morph spend %v", time.Now().Sub(now))
 	if err != nil {
 		return nil, err
 	}
@@ -218,6 +220,10 @@ func main() {
 
 		if data != nil {
 			glg.Info(data.ID)
+			if disableConv {
+				json.NewEncoder(w).Encode(data)
+				return
+			}
 			img, err := base64.StdEncoding.DecodeString(data.Data)
 			if err != nil {
 				json.NewEncoder(w).Encode(data)
