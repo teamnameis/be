@@ -14,6 +14,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -25,13 +26,13 @@ import (
 var (
 	clothesMap sync.Map
 
+	ml      = os.Getenv("ML_PORT")
 	httick = time.NewTicker(time.Millisecond * 200)
 )
 
 const (
 	grpcport = "0.0.0.0:5678"
 	port     = "0.0.0.0:1234"
-	ml       = "127.0.0.1:5000"
 )
 
 type Request struct {

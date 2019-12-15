@@ -33,6 +33,9 @@ spec:
         - containerPort: 1234
           name: rest
           protocol: TCP
+        env:
+        - name: ML_PORT
+          value: bone.default.svc.cluster.local:5000
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
