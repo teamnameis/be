@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +24,8 @@ import (
 	"github.com/kpango/glg"
 	"github.com/teamnameis/be/bone"
 	"google.golang.org/grpc"
+
+	_ "net/http/pprof"
 )
 
 const (
@@ -194,6 +197,11 @@ func morph(id int32, user image.Image) ([]byte, error) {
 }
 
 func main() {
+	runtime.SetBlockProfileRate(1)
+
+	go func() {
+		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+	}()
 
 	var (
 		clothes []byte
