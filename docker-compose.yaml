@@ -11,7 +11,7 @@ services:
     environment:
       DURATION: 1500ms
       ROTATE: ROTATE
-      ML_PORT: ml:5000
+      ML_PORT: "ml:5000"
   ml:
     image: teamnameis/bone:latest
     restart: always
