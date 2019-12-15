@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 var (
 	clothesMap sync.Map
 
+	mode = os.Getenv("ROTATE")
 	ml      = os.Getenv("ML_PORT")
 	httick = time.NewTicker(time.Millisecond * 200)
 )
@@ -115,7 +117,11 @@ func rotate(img []byte)(image.Image, error){
 	if err != nil {
 		return nil, err
 	}
-	return imaging.Rotate90(i), nil
+	if strings.ToUpper(mode) == "ROTATE" {
+		glg.Debug(mode)
+		return imaging.Rotate90(i), nil
+	}
+	return i, nil
 }
 
 func overlay(first image.Image, clothes []byte) ([]byte, error) {

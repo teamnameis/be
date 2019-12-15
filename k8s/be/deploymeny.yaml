@@ -34,6 +34,8 @@ spec:
           name: rest
           protocol: TCP
         env:
+        - name: ROTATE
+          value: none
         - name: ML_PORT
           value: bone.default.svc.cluster.local:5000
         resources: {}
