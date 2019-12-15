@@ -77,6 +77,7 @@ func (s *server) Send(stream Overlay_SendServer) error {
 					case <-tick.C:
 						clothes, err = morph(frame.GetId(), frame.GetData())
 						if err != nil {
+							glg.Errorf("morph error \tid:%d\t%v", frame.GetId(), err)
 							return stream.Send(frame)
 						}
 					default:
@@ -84,18 +85,21 @@ func (s *server) Send(stream Overlay_SendServer) error {
 							first = false
 							clothes, err = morph(frame.GetId(), frame.GetData())
 							if err != nil {
+								glg.Errorf("morph error \tid:%d\t%v", frame.GetId(), err)
 								return stream.Send(frame)
 							}
 						}
 					}
 					res, err := overlay(frame.Data, clothes)
 					if err != nil {
+						glg.Errorf("overlay error \tid:%d\t%v", frame.GetId(), err)
 						return stream.Send(frame)
 					}
 					frame.Data = res
 					return stream.Send(frame)
 				}()
 				if err != nil {
+					glg.Errorf("grpc send error \tid:%d\t%v", frame.GetId(), err)
 					return err
 				}
 			}
