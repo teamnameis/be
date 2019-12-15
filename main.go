@@ -122,7 +122,7 @@ func rotate(img []byte) (image.Image, error) {
 	}
 	if strings.ToUpper(mode) == "ROTATE" {
 		glg.Debug(mode)
-		return imaging.Rotate90(i), nil
+		return imaging.Rotate270(i), nil
 	}
 	return i, nil
 }
