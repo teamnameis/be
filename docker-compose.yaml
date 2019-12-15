@@ -8,6 +8,10 @@ services:
     ports:
      - "1234:1234"
      - "5678:5678"
+    environment:
+      DURATION: 1500ms
+      ROTATE: ROTATE
+      ML_PORT: ml:5000
   ml:
     image: teamnameis/bone:latest
     restart: always
