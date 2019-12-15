@@ -25,17 +25,28 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	clothesMap sync.Map
-
-	mode   = os.Getenv("ROTATE")
-	ml     = os.Getenv("ML_PORT")
-	httick = time.NewTicker(time.Millisecond * 200)
-)
-
 const (
 	grpcport = "0.0.0.0:5678"
 	port     = "0.0.0.0:1234"
+)
+
+var (
+	clothesMap sync.Map
+
+	mode     = os.Getenv("ROTATE")
+	ml       = os.Getenv("ML_PORT")
+	sec = func() time.Duration {
+		t := os.Getenv("DURATION")
+		if t == "" {
+			return time.Millisecond * 500
+		}
+		dur, err := time.ParseDuration(t)
+		if err != nil {
+			return time.Millisecond * 500
+		}
+		return dur
+	}()
+	httick = time.NewTicker(sec)
 )
 
 type Request struct {
@@ -58,7 +69,7 @@ type server struct{}
 // SayHello implements helloworld.GreeterServer
 func (s *server) Send(stream Overlay_SendServer) error {
 	first := true
-	tick := time.NewTicker(time.Millisecond * 200)
+	tick := time.NewTicker(sec)
 	var clothes []byte
 	for {
 		select {
